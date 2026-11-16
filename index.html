@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="static/css/style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -102,17 +102,13 @@
       <section class="section research" id="research">
         <div class="section-heading"><div><div class="eyebrow">03 / RESEARCH & REFERENCES</div><h2>Data grounded in science</h2><p class="section-subtitle">Reference values used to configure and explain the simulation. Values are not presented as experimental trajectory measurements.</p></div></div>
         <div class="research-table-wrap">
-          <table><thead><tr><th>PARAMETER</th><th>REFERENCE VALUE</th><th>APPLICATION</th><th>SOURCE</th></tr></thead><tbody>
-          {% for item in references %}
-            <tr><td>{{ item.parameter }}</td><td class="table-value">{{ item.value }} {{ item.unit }}</td><td>{{ item.use }}</td><td><a href="{{ item.url }}" target="_blank" rel="noreferrer">{{ item.source }} ↗</a></td></tr>
-          {% endfor %}
-          </tbody></table>
+          <table><thead><tr><th>PARAMETER</th><th>REFERENCE VALUE</th><th>APPLICATION</th><th>SOURCE</th></tr></thead><tbody id="reference-rows"></tbody></table>
         </div>
         <p class="research-footnote">The default sphere Cd = 0.47 is an illustrative constant assumption within NASA's stated sphere range, not a universal constant. The bullet Cd example is shown for shape comparison only.</p>
       </section>
     </main>
     <footer><a class="brand" href="#"><span class="brand-mark">↗</span><span>PROJECTILE<span class="brand-light">LAB</span></span></a><span>Built for learning, experimentation & open-source collaboration.</span><span>HTML · CSS · JavaScript · Python</span></footer>
   </div>
-  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+ <script src="static/js/main.js"></script>
 </body>
 </html>
