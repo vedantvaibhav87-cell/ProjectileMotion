@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Interactive projectile motion simulator comparing ideal motion and quadratic air resistance using a Python physics backend.">
+  <title>Projectile Lab | Physics Simulator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="site-shell">
+    <header class="topbar">
+      <a class="brand" href="#"><span class="brand-mark">↗</span><span>PROJECTILE<span class="brand-light">LAB</span></span></a>
+      <nav><a href="#simulator">Simulator</a><a href="#method">Methodology</a><a href="#research">Research data</a></nav>
+      <a class="github-link" href="https://github.com/" target="_blank" rel="noreferrer">GitHub-ready <span>↗</span></a>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="eyebrow"><span class="pulse"></span> INTERACTIVE PHYSICS EXPERIMENT</div>
+        <h1>See the science<br>behind <em>every arc.</em></h1>
+        <p class="hero-copy">Explore projectile motion with a numerical physics engine. Compare the ideal path with quadratic air resistance, tune the environment, and inspect the data.</p>
+        <div class="hero-tags"><span>PYTHON ENGINE</span><span>HTML · CSS · JS</span><span>RK4 INTEGRATION</span></div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="art-grid"></div>
+          <svg viewBox="0 0 900 260" preserveAspectRatio="none">
+            <path class="path-ideal" d="M55 220 Q 390 -105 825 220"/>
+            <path class="path-drag" d="M55 220 Q 355 -42 720 220"/>
+            <circle cx="55" cy="220" r="7" class="launch-dot"/>
+            <circle cx="825" cy="220" r="5" class="end-dot"/>
+            <circle cx="720" cy="220" r="5" class="end-dot drag-end"/>
+            <text x="70" y="245">LAUNCH</text><text x="755" y="245">RANGE</text>
+          </svg>
+          <div class="art-label label-one">IDEAL TRAJECTORY</div>
+          <div class="art-label label-two">WITH AIR RESISTANCE</div>
+        </div>
+      </section>
+
+      <section class="section" id="simulator">
+        <div class="section-heading">
+          <div><div class="eyebrow">01 / EXPERIMENT CONTROLS</div><h2>Configure your launch</h2></div>
+          <button class="reset-btn" id="resetBtn">↺ Reset values</button>
+        </div>
+        <div class="workspace">
+          <aside class="control-panel">
+            <div class="panel-heading"><span>INPUT PARAMETERS</span><span class="live-dot">LIVE</span></div>
+            <div class="control-group">
+              <div class="group-title">LAUNCH CONDITIONS</div>
+              <label class="control"><span>Initial speed <b id="speedValue">30</b></span><input id="speed" type="range" min="5" max="100" step="1" value="30"><small>m/s</small></label>
+              <label class="control"><span>Launch angle <b id="angleValue">45</b></span><input id="angle" type="range" min="5" max="85" step="1" value="45"><small>degrees</small></label>
+              <label class="control"><span>Initial height <b id="heightValue">1.5</b></span><input id="height" type="range" min="0" max="30" step="0.5" value="1.5"><small>m</small></label>
+            </div>
+            <div class="control-group">
+              <div class="group-title">PROJECTILE PROPERTIES</div>
+              <label class="control"><span>Mass <b id="massValue">0.145</b></span><input id="mass" type="range" min="0.05" max="5" step="0.005" value="0.145"><small>kg</small></label>
+              <label class="control"><span>Diameter <b id="diameterValue">0.073</b></span><input id="diameter" type="range" min="0.02" max="0.2" step="0.001" value="0.073"><small>m</small></label>
+              <label class="control"><span>Drag coefficient (Cd) <b id="cdValue">0.47</b></span><input id="cd" type="range" min="0.05" max="1.5" step="0.01" value="0.47"><small>dimensionless</small></label>
+            </div>
+            <div class="control-group">
+              <div class="group-title">ENVIRONMENT</div>
+              <label class="control"><span>Air density <b id="rhoValue">1.217</b></span><input id="rho" type="range" min="0.5" max="1.5" step="0.001" value="1.217"><small>kg/m³</small></label>
+              <label class="control"><span>Gravity <b id="gravityValue">9.80665</b></span><input id="gravity" type="range" min="9" max="10" step="0.00001" value="9.80665"><small>m/s²</small></label>
+              <label class="control"><span>Horizontal wind <b id="windValue">0</b></span><input id="wind" type="range" min="-20" max="20" step="0.5" value="0"><small>m/s</small></label>
+            </div>
+            <button class="run-btn" id="runBtn"><span>▶</span> RUN SIMULATION</button>
+            <p class="panel-note" id="statusText">Ready. Adjust a parameter or run the default experiment.</p>
+          </aside>
+
+          <div class="results-panel">
+            <div class="results-topline"><span>TRAJECTORY VISUALIZATION</span><span class="result-state"><i></i> MODEL OUTPUT</span></div>
+            <div class="chart-wrap"><canvas id="trajectoryChart" aria-label="Projectile trajectory chart"></canvas></div>
+            <div class="legend"><span><i class="legend-ideal"></i> Ideal · no drag</span><span><i class="legend-drag"></i> Quadratic drag</span></div>
+            <div class="metrics-grid">
+              <article class="metric"><span>RANGE WITH DRAG</span><strong id="rangeMetric">—</strong><small>horizontal distance · m</small></article>
+              <article class="metric"><span>FLIGHT TIME</span><strong id="timeMetric">—</strong><small>time until impact · s</small></article>
+              <article class="metric"><span>MAXIMUM HEIGHT</span><strong id="heightMetric">—</strong><small>above ground · m</small></article>
+              <article class="metric"><span>IMPACT SPEED</span><strong id="impactMetric">—</strong><small>speed at impact · m/s</small></article>
+            </div>
+            <div class="comparison">
+              <div><span class="comparison-label">RANGE REDUCTION DUE TO DRAG</span><strong id="reductionMetric">—</strong></div>
+              <span class="comparison-note">Compared with the ideal model</span>
+            </div>
+            <div class="download-row"><button id="csvBtn" class="secondary-btn">↓ Export trajectory CSV</button><span>Numerical results are calculated by the Python backend.</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section methodology" id="method">
+        <div class="section-heading"><div><div class="eyebrow">02 / THE PHYSICS</div><h2>From equations to motion</h2></div></div>
+        <div class="method-grid">
+          <article class="method-card"><span class="method-number">01</span><h3>Resolve velocity</h3><p>Initial velocity is split into horizontal and vertical components using the launch angle.</p><div class="equation">vₓ = v₀ cos θ<br>vᵧ = v₀ sin θ</div></article>
+          <article class="method-card"><span class="method-number">02</span><h3>Calculate drag</h3><p>Quadratic drag depends on air density, drag coefficient, frontal area and relative air speed.</p><div class="equation">D = ½ ρ C<sub>d</sub> A v²</div></article>
+          <article class="method-card"><span class="method-number">03</span><h3>Integrate motion</h3><p>Newton's second law is integrated step-by-step using fourth-order Runge–Kutta (RK4).</p><div class="equation">F = m a<br>Δt = 0.01 s</div></article>
+        </div>
+        <div class="assumption-note"><span>ⓘ</span><p><strong>Model assumptions:</strong> 2D motion, flat ground, constant gravity, constant air density and constant Cd during each run. Spin, lift, changing atmospheric conditions and altitude-dependent wind are not modelled.</p></div>
+      </section>
+
+      <section class="section research" id="research">
+        <div class="section-heading"><div><div class="eyebrow">03 / RESEARCH & REFERENCES</div><h2>Data grounded in science</h2><p class="section-subtitle">Reference values used to configure and explain the simulation. Values are not presented as experimental trajectory measurements.</p></div></div>
+        <div class="research-table-wrap">
+          <table><thead><tr><th>PARAMETER</th><th>REFERENCE VALUE</th><th>APPLICATION</th><th>SOURCE</th></tr></thead><tbody>
+          {% for item in references %}
+            <tr><td>{{ item.parameter }}</td><td class="table-value">{{ item.value }} {{ item.unit }}</td><td>{{ item.use }}</td><td><a href="{{ item.url }}" target="_blank" rel="noreferrer">{{ item.source }} ↗</a></td></tr>
+          {% endfor %}
+          </tbody></table>
+        </div>
+        <p class="research-footnote">The default sphere Cd = 0.47 is an illustrative constant assumption within NASA's stated sphere range, not a universal constant. The bullet Cd example is shown for shape comparison only.</p>
+      </section>
+    </main>
+    <footer><a class="brand" href="#"><span class="brand-mark">↗</span><span>PROJECTILE<span class="brand-light">LAB</span></span></a><span>Built for learning, experimentation & open-source collaboration.</span><span>HTML · CSS · JavaScript · Python</span></footer>
+  </div>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
